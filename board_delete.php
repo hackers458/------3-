@@ -25,20 +25,17 @@ if (!$stmt->fetch()) {
 }
 $stmt->close();
 
-if ($_SESSION['user_id'] !== $user_id) {
+// 권한 체크 (타입 일치 중요)
+if ((int)$_SESSION['user_id'] !== (int)$user_id) {
     echo "삭제 권한이 없습니다.";
     exit;
 }
-
-// 댓글과 파일이 있다면 먼저 삭제하는 로직 추가 가능
 
 // 게시글 삭제
 $stmt = $conn->prepare("DELETE FROM posts WHERE id = ?");
 $stmt->bind_param("i", $post_id);
 
 if ($stmt->execute()) {
-    $stmt->close();
-    $conn->close();
     header("Location: board_list.php");
     exit;
 } else {
