@@ -1,7 +1,7 @@
 
 
 <?php
-require_once 'auth_check.php'
+require_once 'auth_check.php';
 ini_set('session.save_path', '/tmp');
 session_start();
 
