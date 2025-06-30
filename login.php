@@ -1,6 +1,12 @@
 <?php
 session_start();
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // POST 요청이 아니면 접근 거부 또는 로그인 폼으로 리다이렉트
+    header('Location: sign_up.html'); // 또는 login.html 등 로그인 폼 페이지
+    exit;
+}
+
 $conn = new mysqli("localhost", "root", "swjisj123!B", "user_info");
 if ($conn->connect_error) {
     die("DB 연결 실패: " . $conn->connect_error);
