@@ -15,6 +15,7 @@ $post_id = (int)$_GET['id'];
 
 // DB 연결
 $conn = new mysqli("kknock6.mysql.database.azure.com", "hackers458", "swjisj123!", "user_info");
+phpinfo();
 if ($conn->connect_error) {
     die("DB 연결 실패: " . $conn->connect_error);
 }
