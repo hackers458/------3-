@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$conn = new mysqli("localhost", "root", "swjisj123!B", "user_info");
+$conn = new mysqli("kknock6.mysql.database.azure.com", "hackers458", "swjisj123!", "user_info");
 if ($conn->connect_error) {
     die("DB 연결 실패: " . $conn->connect_error);
 }
