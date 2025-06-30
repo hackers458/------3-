@@ -8,7 +8,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $file_id = (int)$_GET['id'];
 
-$conn = new mysqli("localhost", "root", "swjisj123!B", "user_info");
+$conn = new mysqli("kknock6.mysql.database.azure.com", "hackers458", "swjisj123!", "user_info");
 
 // 파일 정보 + 글 작성자 조회
 $stmt = $conn->prepare("
