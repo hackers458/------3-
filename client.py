@@ -1,4 +1,9 @@
-import pymysql, requests, os, random, string, time
+import pymysql
+import requests
+import os
+import random
+import string
+import time
 
 class Client:
     def __init__(self, token, db_id, db_pw, server_addr):
@@ -13,37 +18,50 @@ class Client:
     # 서버에서 FLAG 받아오기
     def get_flag(self):
         print(self.flag_addr)
-        # 전체 FLAG 받아오기
         all_flag = requests.get(self.flag_addr).text
-
-        # DB FLAG와 서버 FLAG로 나누기
         all_flag_lst = all_flag.split("_")
-
-        # DB FLAG와 서버 FLAG 값 넣기
         self.db_flag = all_flag_lst[0]
         self.server_flag = all_flag_lst[1]
 
     # 데이터베이스에 FLAG 저장
     def save_flag_db(self):
         char_set = string.ascii_lowercase + string.digits
-        new_tbl=''.join(random.sample(char_set*6, 6))
-        new_col=''.join(random.sample(char_set*6, 6))
-        db = pymysql.connect(
-            host="localhost", user=self.db_id, password=self.db_pw, db="flag"
-        )
+        new_tbl = ''.join(random.sample(char_set * 6, 6))
 
+        db = pymysql.connect(
+            host="kknock6.mysql.database.azure.com",
+            user=self.db_id,
+            password=self.db_pw,
+            db="flag"
+        )
         cursor = db.cursor()
-        cursor.execute("show tables")
+
+        # 기존 테이블 이름 가져오기
+        cursor.execute("SHOW TABLES")
         before_tbl = cursor.fetchone()[0]
-        cursor.execute(f"desc {before_tbl}")
-        before_col = cursor.fetchone()[0]
+
+        # 테이블 구조 확인
+        cursor.execute(f"DESC {before_tbl}")
+        columns = cursor.fetchall()  # [(Field, Type, ...), ...]
+
+        # 문자열 컬럼 찾기
+        str_col = None
+        for col in columns:
+            field, ctype = col[0], col[1].lower()
+            if any(s in ctype for s in ['varchar', 'char', 'text']):
+                str_col = field
+                break
+
+        if not str_col:
+            raise Exception("문자열 타입 컬럼이 없어 FLAG를 저장할 수 없습니다.")
+
+        # 테이블명 변경
         change_tbl = f"RENAME TABLE {before_tbl} TO {new_tbl}"
         cursor.execute(change_tbl)
-        change_col = f"alter table {new_tbl} change {before_col} {new_col} varchar(50)"
-        cursor.execute(change_col)
-        db.commit()
-        sql = f"update {new_tbl} set {new_col}='{self.db_flag}'"
-        cursor.execute(sql)
+
+        # FLAG 저장
+        sql = f"UPDATE {new_tbl} SET {str_col} = %s"
+        cursor.execute(sql, (self.db_flag,))
 
         db.commit()
         db.close()
@@ -51,8 +69,6 @@ class Client:
     # 서버에 FLAG 저장
     def save_flag_server(self):
         directory = "/flag"
-
-        # 디렉토리가 존재하지 않을 경우
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -61,8 +77,12 @@ class Client:
 
 
 if __name__ == "__main__":
-    client = Client("token", "your_database_id", "your_database_pw", "server_address",)
-    # 서버의 crontab 이후에 클라이언트의 crontab이 이루어지도록 설정
+    client = Client(
+        token="my_server_is_dead_or_hacked_by_who",
+        db_id="hackers458",
+        db_pw="swjisj123!",
+        server_addr="token.kknock.org"
+    )
     time.sleep(30)
     client.get_flag()
     client.save_flag_db()
