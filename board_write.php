@@ -34,17 +34,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $tmp_name = $_FILES['upload_file']['tmp_name'];
             $original_name = basename($_FILES['upload_file']['name']);
-            $ext = pathinfo($original_name, PATHINFO_EXTENSION);
+            $ext = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
+
+            // 허용 확장자
+            $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
+
+            if (!in_array($ext, $allowed_ext)) {
+                echo "허용되지 않는 파일 형식입니다.";
+                exit;
+            }
+
+            // MIME 타입 검사
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime_type = finfo_file($finfo, $tmp_name);
+            finfo_close($finfo);
+
+            $allowed_mime = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!in_array($mime_type, $allowed_mime)) {
+                echo "허용되지 않는 MIME 타입입니다.";
+                exit;
+            }
+
             $filename = uniqid() . '.' . $ext;
             $destination = $upload_dir . $filename;
 
             if (move_uploaded_file($tmp_name, $destination)) {
+                // 업로드된 파일 권한 제한 (읽기 전용)
+                chmod($destination, 0644);
+
                 $stmt_file = $conn->prepare("INSERT INTO files (post_id, filename, original_name) VALUES (?, ?, ?)");
                 $stmt_file->bind_param("iss", $post_id, $filename, $original_name);
                 $stmt_file->execute();
                 $stmt_file->close();
             } else {
                 echo "파일 저장에 실패했습니다.";
+                exit;
             }
         }
 
@@ -77,7 +101,7 @@ $conn->close();
         <label>내용:<br>
             <textarea name="content" rows="10" cols="50" required></textarea>
         </label><br><br>
-        <label>첨부파일: <input type="file" name="upload_file"></label><br><br>
+        <label>첨부파일: <input type="file" name="upload_file" accept=".jpg,.jpeg,.png,.gif"></label><br><br>
         <button type="submit">작성 완료</button>
     </form>
     <p><a href="board_list.php">목록으로</a></p>
